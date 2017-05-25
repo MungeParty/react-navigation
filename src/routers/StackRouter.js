@@ -1,6 +1,7 @@
 /* @flow */
 
 import pathToRegexp from 'path-to-regexp';
+import shallowEqual from 'fbjs/lib/shallowEqual';
 
 import NavigationActions from '../NavigationActions';
 import createConfigGetter from './createConfigGetter';
@@ -173,6 +174,16 @@ export default (
             key: _getUuid(),
             routeName: action.routeName,
           };
+
+          const index = state.routes.length - 1;
+          const lastRoute = state.routes[index];
+          if (
+            action.routeName === lastRoute.routeName &&
+            shallowEqual(action.params, lastRoute.params)
+          ) {
+            route.key = lastRoute.key;
+            return StateUtils.replaceAtIndex(state, index, route);
+          }
         } else {
           route = {
             params: action.params,
@@ -208,6 +219,18 @@ export default (
               routeToPush = navigatedChildRoute;
             }
             if (routeToPush) {
+              const index = state.routes.length - 1;
+              const lastRoute = state.routes[index];
+              if (
+                childRouterName === lastRoute.routeName &&
+                shallowEqual(action.params, lastRoute.params)
+              ) {
+                return StateUtils.replaceAtIndex(state, index, {
+                  ...routeToPush,
+                  key: lastRoute.key,
+                  routeName: childRouterName,
+                });
+              }
               return StateUtils.push(state, {
                 ...routeToPush,
                 key: _getUuid(),
@@ -359,7 +382,7 @@ export default (
           /* $FlowFixMe */
           // pathMatch.slice(pathMatchKeys.length).join('/'),
           // TODO: example and argument and pr -TMB
-          pathToResolve,
+          pathToResolve
         );
       }
 
@@ -395,7 +418,7 @@ export default (
 
       return NavigationActions.navigate({
         routeName: matchedRouteName,
-        ...(params ? { params } : {}),
+        ...(!nestedAction && params ? { params } : {}),
         ...(nestedAction ? { action: nestedAction } : {}),
       });
     },

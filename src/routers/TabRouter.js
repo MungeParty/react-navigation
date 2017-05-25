@@ -66,7 +66,9 @@ export default (
           const tabRouter = tabRouters[routeName];
           if (tabRouter) {
             const childAction =
-              action.action ||
+              // NOTE: initialize new state here, do not pass along action
+              // the tab will respond to the action below!!!!!!!
+              // action.action ||
               NavigationActions.init({
                 ...(action.params ? { params: action.params } : {}),
               });
@@ -300,37 +302,32 @@ export default (
           .map((tabId: string) => {
             const parts = path.split('/');
             const pathToTest = paths[tabId];
+            let pathMatch = false;
             if (parts[0] === pathToTest) {
-              const tabRouter = tabRouters[tabId];
-              const action: NavigationNavigateAction = NavigationActions.navigate(
-                {
-                  routeName: tabId,
-                }
-              );
-              if (tabRouter && tabRouter.getActionForPathAndParams) {
-                action.action = tabRouter.getActionForPathAndParams(
-                  // parts.slice(1).join('/'),
-                  // TODO: example and argument and pr -TMB
-                  path,
-                  params
-                );
-              } else if (params) {
-                action.params = params;
-              }
-              return action;
+              pathMatch = false;
             }
-            return null;
-          })
-          .find((action: *) => !!action) ||
-        order
-          .map((tabId: string) => {
             const tabRouter = tabRouters[tabId];
-            return (
-              tabRouter && tabRouter.getActionForPathAndParams(path, params)
+            const action: NavigationNavigateAction = NavigationActions.navigate(
+              {
+                routeName: tabId,
+              }
             );
+            if (tabRouter && tabRouter.getActionForPathAndParams) {
+              action.action = tabRouter.getActionForPathAndParams(
+                // parts.slice(1).join('/'),
+                // TODO: example and argument and pr -TMB
+                path,
+                params
+              );
+              if (!action.action && !pathMatch) {
+                return null;
+              }
+            } else if (params) {
+              action.params = params;
+            }
+            return action;
           })
-          .find((action: *) => !!action) ||
-        null
+          .find((action: *) => !!action) || null
       );
     },
 
