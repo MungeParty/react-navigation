@@ -309,7 +309,9 @@ export default (
               );
               if (tabRouter && tabRouter.getActionForPathAndParams) {
                 action.action = tabRouter.getActionForPathAndParams(
-                  parts.slice(1).join('/'),
+                  // parts.slice(1).join('/'),
+                  // TODO: example and argument and pr -TMB
+                  path,
                   params
                 );
               } else if (params) {
