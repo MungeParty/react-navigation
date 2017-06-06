@@ -177,39 +177,41 @@ export default (
       }
 
       // Handle explicit push navigation action
-      if (
-        action.type === NavigationActions.NAVIGATE &&
-        childRouters[action.routeName] !== undefined
-      ) {
-        const childRouter = childRouters[action.routeName];
-        let route;
-        if (childRouter) {
-          const childAction =
-            action.action || NavigationActions.init({ params: action.params });
-          route = {
-            params: action.params,
-            ...childRouter.getStateForAction(childAction),
-            key: _getUuid(),
-            routeName: action.routeName,
-          };
+      if (action.type === NavigationActions.NAVIGATE) {
+        if (childRouters[action.routeName] !== undefined) {
+          const childRouter = childRouters[action.routeName];
+          let route;
+          if (childRouter) {
+            const childAction =
+              action.action ||
+              NavigationActions.init({ params: action.params });
+            route = {
+              params: action.params,
+              ...childRouter.getStateForAction(childAction),
+              key: _getUuid(),
+              routeName: action.routeName,
+            };
 
-          const index = state.routes.length - 1;
-          const lastRoute = state.routes[index];
-          if (
-            action.routeName === lastRoute.routeName &&
-            shallowEqual(action.params, lastRoute.params)
-          ) {
-            route.key = lastRoute.key;
-            return StateUtils.replaceAtIndex(state, index, route);
+            const index = state.routes.length - 1;
+            const lastRoute = state.routes[index];
+            if (action.routeName === lastRoute.routeName) {
+              route.key = lastRoute.key;
+              return StateUtils.replaceAtIndex(state, index, route);
+            }
+          } else {
+            route = {
+              params: action.params,
+              key: _getUuid(),
+              routeName: action.routeName,
+            };
+            const index = state.routes.length - 1;
+            const lastRoute = state.routes[index];
+            if (action.routeName === lastRoute.routeName) {
+              return StateUtils.replaceAtIndex(state, index, route);
+            }
           }
-        } else {
-          route = {
-            params: action.params,
-            key: _getUuid(),
-            routeName: action.routeName,
-          };
+          return StateUtils.push(state, route);
         }
-        return StateUtils.push(state, route);
       }
 
       // Handle navigation to other child routers that are not yet pushed
