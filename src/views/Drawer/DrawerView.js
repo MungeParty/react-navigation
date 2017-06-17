@@ -34,7 +34,7 @@ export type DrawerViewConfig = {
   contentComponent: ReactClass<*>,
   contentOptions?: {},
   style?: Style,
-  swipeEnabled?: boolean,
+  gesturesEnabled?: boolean,
 };
 
 type Props = DrawerViewConfig & {
@@ -48,9 +48,9 @@ type Props = DrawerViewConfig & {
 };
 
 const LockMode = {
-    unlocked: 'unlocked',
-    lockedClosed: 'locked-closed',
-    lockedOpen: 'locked-open',
+  unlocked: 'unlocked',
+  lockedClosed: 'locked-closed',
+  lockedOpen: 'locked-open',
 };
 
 /**
@@ -149,9 +149,7 @@ export default class DrawerView<T: *> extends PureComponent<void, Props, void> {
         onDrawerClose={this._handleDrawerClose}
         renderNavigationView={this._renderNavigationView}
         drawerLockMode={
-          this.props.swipeEnabled
-            ? LockMode.unlocked
-            : LockMode.lockedClosed
+          this.props.gesturesEnabled ? LockMode.unlocked : LockMode.lockedClosed
         }
         drawerPosition={
           this.props.drawerPosition === 'right'

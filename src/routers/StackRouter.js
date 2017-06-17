@@ -133,7 +133,7 @@ export default (
           route = initialChildRouter.getStateForAction(
             NavigationActions.navigate({
               routeName: initialRouteName,
-              params: initialRouteParams,
+              // params: initialRouteParams,
             })
           );
         }
@@ -179,6 +179,11 @@ export default (
       // Handle explicit push navigation action
       if (action.type === NavigationActions.NAVIGATE) {
         if (childRouters[action.routeName] !== undefined) {
+          const keyIndex = action.key
+            ? StateUtils.indexOf(state, action.key)
+            : -1;
+          const childIndex = keyIndex >= 0 ? keyIndex : state.index;
+          const childRoute = state.routes[childIndex];
           const childRouter = childRouters[action.routeName];
           let route;
           if (childRouter) {
@@ -187,7 +192,12 @@ export default (
               NavigationActions.init({ params: action.params });
             route = {
               params: action.params,
-              ...childRouter.getStateForAction(childAction),
+              ...childRouter.getStateForAction(
+                childAction,
+                childRoute.routeName === action.routeName
+                  ? childRoute
+                  : undefined
+              ),
               key: _getUuid(),
               routeName: action.routeName,
             };

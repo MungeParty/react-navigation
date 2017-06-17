@@ -81,7 +81,7 @@ const DrawerNavigator = (
       contentComponent={contentComponent}
       contentOptions={contentOptions}
       drawerPosition={drawerPosition}
-      swipeEnabled={config.swipeEnabled}
+      gesturesEnabled={config.gesturesEnabled}
     />
   ));
 

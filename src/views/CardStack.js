@@ -385,13 +385,22 @@ class CardStack extends Component {
   ): React.Element<any> {
     const { navigation } = this._getScreenDetails(scene);
     const { screenProps } = this.props;
+    // rich scene state data passed as sceneProps
+    // to top-level screen components
+    const sceneProps = {
+      ...screenProps,
+      isActive: scene.isActive,
+      routeName: scene.route.routeName,
+      routeKey: scene.route.key,
+      sceneKey: scene.key,
+    };
     const headerMode = this._getHeaderMode();
     if (headerMode === 'screen') {
       return (
         <View style={styles.container}>
           <View style={{ flex: 1 }}>
             <SceneView
-              screenProps={screenProps}
+              screenProps={sceneProps}
               navigation={navigation}
               component={SceneComponent}
             />
@@ -402,7 +411,7 @@ class CardStack extends Component {
     }
     return (
       <SceneView
-        screenProps={this.props.screenProps}
+        screenProps={sceneProps}
         navigation={navigation}
         component={SceneComponent}
       />

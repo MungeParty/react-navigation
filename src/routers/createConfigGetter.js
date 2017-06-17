@@ -62,21 +62,21 @@ export default (
 
   let outputConfig = {};
 
-  if (Component.router) {
-    invariant(
-      route && routes && index != null,
-      `Expect nav state to have routes and index, ${JSON.stringify(route)}`
-    );
-    const childRoute = routes[index];
-    const childNavigation = addNavigationHelpers({
-      state: childRoute,
-      dispatch,
-    });
-    outputConfig = Component.router.getScreenOptions(
-      childNavigation,
-      screenProps
-    );
-  }
+  // if (Component.router) {
+  //   invariant(
+  //     route && routes && index != null,
+  //     `Expect nav state to have routes and index, ${JSON.stringify(route)}`
+  //   );
+  //   const childRoute = routes[index];
+  //   const childNavigation = addNavigationHelpers({
+  //     state: childRoute,
+  //     dispatch,
+  //   });
+  //   outputConfig = Component.router.getScreenOptions(
+  //     childNavigation,
+  //     screenProps
+  //   );
+  // }
 
   const routeConfig = routeConfigs[route.routeName];
 
