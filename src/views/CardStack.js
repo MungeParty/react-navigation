@@ -40,7 +40,6 @@ const emptyFunction = () => {};
 type Props = {
   screenProps?: {},
   headerMode: HeaderMode,
-  headerComponent?: ReactClass<*>,
   mode: 'card' | 'modal',
   navigation: NavigationScreenProp<NavigationState, NavigationAction>,
   router: NavigationRouter<
@@ -162,7 +161,8 @@ class CardStack extends Component {
 
   _renderHeader(
     scene: NavigationScene,
-    headerMode: HeaderMode
+    headerMode: HeaderMode,
+    props?: *
   ): ?React.Element<*> {
     const { header } = this._getScreenDetails(scene).options;
 
@@ -178,6 +178,7 @@ class CardStack extends Component {
 
     return renderHeader({
       ...passProps,
+      ...props,
       scene,
       mode: headerMode,
       getScreenDetails: this._getScreenDetails,
@@ -385,14 +386,10 @@ class CardStack extends Component {
   ): React.Element<any> {
     const { navigation } = this._getScreenDetails(scene);
     const { screenProps } = this.props;
-    // rich scene state data passed as sceneProps
-    // to top-level screen components
     const sceneProps = {
       ...screenProps,
-      isActive: scene.isActive,
-      routeName: scene.route.routeName,
-      routeKey: scene.route.key,
-      sceneKey: scene.key,
+      scene,
+      getScreenDetails: this._getScreenDetails,
     };
     const headerMode = this._getHeaderMode();
     if (headerMode === 'screen') {
@@ -406,6 +403,19 @@ class CardStack extends Component {
             />
           </View>
           {this._renderHeader(scene, headerMode)}
+        </View>
+      );
+    } else if (headerMode === 'custom') {
+      const Header = props => this._renderHeader(scene, headerMode, props);
+      return (
+        <View style={styles.container}>
+          <View style={{ flex: 1 }}>
+            <SceneView
+              screenProps={{ ...sceneProps, Header }}
+              navigation={navigation}
+              component={SceneComponent}
+            />
+          </View>
         </View>
       );
     }
