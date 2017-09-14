@@ -401,12 +401,18 @@ export default (
           }
         } else {
           pathMatch = matchPattern(pattern, pathToResolve);
-          if (pathMatch) {
+          if (
+            pathMatch &&
+            (!pathMatchValues ||
+              (pathMatch.paramValues &&
+                pathMatch.paramValues.length > pathMatchValues.length))
+          ) {
             pathMatchKeys = keys;
             pathMatchValues = pathMatch.paramValues;
             matchedRouteName = routeName;
             pathMatchExact = matchExact;
-            break;
+            // for exact match, keep looking for a better match -TMB
+            // break;
           }
         }
       }

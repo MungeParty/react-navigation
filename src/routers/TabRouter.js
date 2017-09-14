@@ -323,7 +323,9 @@ export default (
                 return null;
               }
             } else if (params) {
-              action.params = params;
+              //action.params = params;
+              // NOTE: should not return a valid action without a valid match!! -TMB
+              return null;
             }
             return action;
           })
