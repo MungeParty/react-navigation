@@ -7,6 +7,7 @@ import createConfigGetter from './createConfigGetter';
 import NavigationActions from '../NavigationActions';
 import validateRouteConfigMap from './validateRouteConfigMap';
 import getScreenConfigDeprecated from './getScreenConfigDeprecated';
+import StateUtils from '../StateUtils';
 
 import type {
   NavigationAction,
@@ -104,6 +105,35 @@ export default (
                 },
               }: NavigationRoute)
           );
+        }
+      }
+
+      // handle custom PASS action -TMB
+      if (action.type === NavigationActions.PASS && action.action) {
+        // confirm child router exists at the action routename
+        const childRouter = tabRouters[action.routeName];
+        if (childRouter !== undefined) {
+          // get the key for the route and find the route
+          // by key first, or by name second if no key
+          // (lets be honest, its going to be by name)
+          const childIndex = action.key
+            ? StateUtils.indexOf(state, action.key)
+            : StateUtils.indexOfByName(state, action.routeName);
+          if (childIndex >= 0) {
+            const childRoute = state.routes[childIndex];
+            if (childRoute) {
+              // pass the child action to the child and get the resultant state...
+              const route = childRouter.getStateForAction(action.action, childRoute);
+              if (route) {
+                // if we got something back, replace at the index,
+                // but retain the currently set active route index...
+                return {
+                  ...StateUtils.replaceAtIndex(state, childIndex, route),
+                  index: state.index,
+                };
+              }
+            }
+          }
         }
       }
 
@@ -323,7 +353,7 @@ export default (
                 return null;
               }
             } else if (params) {
-              //action.params = params;
+              // action.params = params;
               // NOTE: should not return a valid action without a valid match!! -TMB
               return null;
             }

@@ -29,11 +29,34 @@ const StateUtils = {
   },
 
   /**
-   * Returns `true` at which a given route's key can be found in the
+   * Returns `true` if a given route's key can be found in the
    * routes of the navigation state.
    */
   has(state: NavigationState, key: string): boolean {
     return !!state.routes.some((route: *) => route.key === key);
+  },
+
+  /**
+   * Gets a route by name. If the route isn't found, returns `null`.
+   */
+  getByName(state: NavigationState, routeName: string): ?NavigationRoute {
+    return state.routes.find((route: *) => route.routeName === routeName) || null;
+  },
+
+  /**
+   * Returns the first index at which a given route's name can be found in the
+   * routes of the navigation state, or -1 if it is not present.
+   */
+  indexOfByName(state: NavigationState, routeName: string): number {
+    return state.routes.map((route: *) => route.routeName).indexOf(routeName);
+  },
+
+  /**
+   * Returns `true` if a given route's name can be found in the
+   * routes of the navigation state.
+   */
+  hasByName(state: NavigationState, routeName: string): boolean {
+    return !!state.routes.some((route: *) => route.routeName === routeName);
   },
 
   /**

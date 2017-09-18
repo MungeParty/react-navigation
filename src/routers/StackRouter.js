@@ -80,7 +80,7 @@ export default (
         matchExact,
       };
     } else {
-      let { regexpSource: re, paramNames: keys } = compilePattern(pathPattern);
+      const { regexpSource: re, paramNames: keys } = compilePattern(pathPattern);
       paths[routeName] = {
         re,
         keys,
@@ -140,10 +140,10 @@ export default (
         const params = (route.params ||
           action.params ||
           initialRouteParams) && {
-          ...(route.params || {}),
-          ...(action.params || {}),
-          ...(initialRouteParams || {}),
-        };
+            ...(route.params || {}),
+            ...(action.params || {}),
+            ...(initialRouteParams || {}),
+          };
         route = {
           ...route,
           routeName: initialRouteName,
@@ -158,7 +158,7 @@ export default (
       }
 
       // Check if a child scene wants to handle the action as long as it is not a reset to the root stack
-      if (action.type !== NavigationActions.RESET || action.key !== null) {
+      if (action.type !== NavigationActions.RESET || !action.key) {
         const keyIndex = action.key
           ? StateUtils.indexOf(state, action.key)
           : -1;
@@ -166,12 +166,41 @@ export default (
         const childRoute = state.routes[childIndex];
         const childRouter = childRouters[childRoute.routeName];
         if (childRouter) {
-          const route = childRouter.getStateForAction(action, childRoute);
+          const route = childRouter.getStateForAction(action.action || action, childRoute);
           if (route === null) {
             return state;
           }
           if (route && route !== childRoute) {
             return StateUtils.replaceAt(state, childRoute.key, route);
+          }
+        }
+      }
+
+      // handle custom PASS action -TMB
+      if (action.type === NavigationActions.PASS && action.action) {
+        // confirm child router exists at the action routename
+        const childRouter = childRouters[action.routeName];
+        if (childRouter !== undefined) {
+          // get the key for the route and find the route
+          // by key first, or by name second if no key
+          // (lets be honest, its going to be by name)
+          const childIndex = action.key
+            ? StateUtils.indexOf(state, action.key)
+            : StateUtils.indexOfByName(state, action.routeName);
+          if (childIndex >= 0) {
+            const childRoute = state.routes[childIndex];
+            if (childRoute) {
+              // pass the child action to the child and get the resultant state...
+              const route = childRouter.getStateForAction(action.action, childRoute);
+              if (route) {
+                // if we got something back, replace at the index,
+                // but retain the currently set active route index...
+                return {
+                  ...StateUtils.replaceAtIndex(state, childIndex, route),
+                  index: state.index,
+                };
+              }
+            }
           }
         }
       }
@@ -324,14 +353,12 @@ export default (
       if (action.type === NavigationActions.BACK) {
         let backRouteIndex = null;
         if (action.key) {
-          const backRoute = state.routes.find(
-            /* $FlowFixMe */
-            (route: *) => route.key === action.key
-          );
-          /* $FlowFixMe */
-          backRouteIndex = state.routes.indexOf(backRoute);
+          backRouteIndex = StateUtils.indexOf(state, action.key);
         }
-        if (backRouteIndex == null) {
+        if (action.routeName) {
+          backRouteIndex = StateUtils.indexOfByName(state, action.routeName);
+        }
+        if (backRouteIndex == null || backRouteIndex === 0) {
           return StateUtils.pop(state);
         }
         if (backRouteIndex > 0) {
@@ -340,6 +367,17 @@ export default (
             routes: state.routes.slice(0, backRouteIndex),
             index: backRouteIndex - 1,
           };
+        }
+        if (backRouteIndex === -1 && action.routeName) {
+          const resetAction = NavigationActions.reset({
+            index: 0,
+            actions: [NavigationActions.navigate({ routeName: action.routeName })]
+          });
+          const newState = this.getStateForAction(
+            resetAction,
+            state,
+          );
+          return newState;
         }
       }
       return state;
@@ -469,9 +507,9 @@ export default (
           }, queryParams);
       } else {
         params = { ...queryParams };
-        Object.keys(pathMatchValues).map(i => {
-          let val = pathMatchValues[i];
-          let key = pathMatchKeys[i];
+        Object.keys(pathMatchValues).map((i) => {
+          const val = pathMatchValues[i];
+          const key = pathMatchKeys[i];
           if (key !== undefined && val !== undefined) params[key] = val;
           return null;
         });
